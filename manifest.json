@@ -4,7 +4,7 @@
     "website_url": "",
     "version_number": "0.1.2",
     "description": "Generates a hash value from running modlist that can be used to compare to an expected hash, as well as when joining other lobbies with this mod.",
-    "dependencies": [
-        "BepInEx-BepInExPack-5.4.2100"
-    ]
+    "dependencies": {
+        "BepInEx-BepInExPack": "5.4.2100"
+    }
 }
