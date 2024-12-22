@@ -25,7 +25,7 @@ namespace ModListHashChecker
             public const string PLUGIN_VERSION = "0.1.2";
         }
 
-        internal static new ManualLogSource Log;
+        internal static ManualLogSource Log;
 
         private void Awake()
         {
