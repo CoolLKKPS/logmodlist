@@ -4,7 +4,6 @@
     <TargetFramework>.NETFramework,Version=v4.8.1</TargetFramework>
   </PropertyGroup>
 <ItemGroup>
-    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.1" PrivateAssets="all" />
     <Reference Include="0Harmony">
       <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\Default\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
@@ -66,7 +65,6 @@
       <HintPath>D:\SteamLibrary\steamapps\common\Lethal Company\Lethal Company_Data\Managed\UnityEngine.VideoModule.dll</HintPath>
     </Reference>
   </ItemGroup>
-
 
 
 </Project>
