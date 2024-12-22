@@ -1,12 +1,7 @@
 ﻿using BepInEx;
-using BepInEx.Bootstrap;
 using BepInEx.Logging;
-using BepInEx.Configuration;
 using HarmonyLib;
-using System;
 using System.Reflection;
-using Unity.Netcode;
-using UnityEngine;
 
 namespace ModListHashChecker
 {

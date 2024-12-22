@@ -1,20 +1,9 @@
 ﻿using HarmonyLib;
-using System.Collections.Generic;
-using UnityEngine;
-using BepInEx;
 using System.Threading;
 using BepInEx.Bootstrap;
 using System.Threading.Tasks;
-using System.Security.Cryptography;
-using System.Text;
-using System.Linq;
 using Steamworks;
 using Steamworks.Data;
-using BepInEx.Configuration;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using System;
-using TMPro;
 
 
 namespace ModListHashChecker
