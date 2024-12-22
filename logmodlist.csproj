@@ -8,9 +8,6 @@
     <Reference Include="0Harmony">
       <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\Default\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
-    <Reference Include="0Harmony20">
-      <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\Default\BepInEx\core\0Harmony20.dll</HintPath>
-    </Reference>
     <Reference Include="AmazingAssets.TerrainToMesh">
       <HintPath>D:\SteamLibrary\steamapps\common\Lethal Company\Lethal Company_Data\Managed\AmazingAssets.TerrainToMesh.dll</HintPath>
     </Reference>
@@ -61,9 +58,6 @@
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
       <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\Default\BepInEx\core\MonoMod.RuntimeDetour.dll</HintPath>
-    </Reference>
-    <Reference Include="MonoMod.Utils">
-      <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\Default\BepInEx\core\MonoMod.Utils.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib">
       <HintPath>D:\SteamLibrary\steamapps\common\Lethal Company\Lethal Company_Data\Managed\mscorlib.dll</HintPath>
