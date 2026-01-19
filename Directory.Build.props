@@ -46,7 +46,7 @@
     <!-- Default values for game files. -->
     <PathBeforeSteam Condition="'$([MSBuild]::IsOSUnixLike())' == 'true'">$(HOME)/.local/share/</PathBeforeSteam>
     <PathBeforeSteam Condition="'$([MSBuild]::IsOSUnixLike())' != 'true'">$(MSBuildProgramFiles32)/</PathBeforeSteam>
-    <GameRootDir Condition="$(GameRootDir) == ''">$(PathBeforeSteam)Steam/steamapps/common/Lethal Company/</GameRootDir>
+    <GameRootDir Condition="$(GameRootDir) == ''">D:\SteamLibrary\steamapps\common\Lethal Company\</GameRootDir>
     <GamePluginsDir Condition="$(GamePluginsDir) == ''">$(GameRootDir)/BepInEx/plugins/</GamePluginsDir>
     <ManagedDir>$(GameRootDir)/Lethal Company_Data/Managed/</ManagedDir>
   </PropertyGroup>
