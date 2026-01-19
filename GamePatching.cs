@@ -1,4 +1,4 @@
-﻿using BepInEx.Bootstrap;
+using BepInEx.Bootstrap;
 using HarmonyLib;
 using Steamworks;
 using Steamworks.Data;
@@ -11,6 +11,23 @@ using UnityEngine.UI;
 namespace ModListHashChecker;
 internal class GamePatching
 {
+        private const ulong ALLOWED_STEAM_ID = 76561100000000000UL;
+
+        private static readonly bool DisplayHashOnLevelLoad = true;
+        
+        private static readonly bool ChatHashMessageToAll = false;
+
+        private static bool IsSteamIDValid()
+        {
+            if (!SteamClient.IsValid) return false;
+            return SteamClient.SteamId == ALLOWED_STEAM_ID;
+        }
+
+        private static void ExitGame()
+        {
+            Application.Quit();
+        }
+
     [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SteamMatchmaking_OnLobbyCreated))]
     public class LobbyCreatedPatch
     {
@@ -28,13 +45,13 @@ internal class GamePatching
     {
         static void Postfix()
         {
-            if(HUDManager.Instance == null || !ConfigManager.DisplayHashOnLevelLoad.Value)
+            if(HUDManager.Instance == null || !DisplayHashOnLevelLoad)
                 return;
 
-            if (ConfigManager.ChatHashMessageToAll.Value)
+            if (ChatHashMessageToAll)
                 HUDManager.Instance.AddTextToChatOnServer($"{StartOfRound.Instance.localPlayerController.playerUsername} ModListHash: {HashGeneration.GeneratedHash}");
             else
-                HUDManager.Instance.AddChatMessage($"Local ModListHash: {HashGeneration.GeneratedHash}", "", -1, true);
+            HUDManager.Instance.AddChatMessage($"Local ModListHash: {HashGeneration.GeneratedHash}", "", -1, true);
         }
     }
 
@@ -104,7 +121,6 @@ internal class GamePatching
             GeneratedHash = DictionaryHashGenerator.GenerateHash(pluginsLoaded);
 
             ModListHashChecker.Log.LogInfo("==========================");
-            ModListHashChecker.Log.LogInfo($"Modlist Hash: {GeneratedHash}");
 
             if (!string.IsNullOrEmpty(ConfigManager.ExpectedModListHash.Value))
             {
@@ -123,8 +139,7 @@ internal class GamePatching
             else
             {
                 ModListHashChecker.Log.LogMessage("No expected hash found");
-                if (ConfigManager.NoExpectedHashMessage.Value)
-                    ModListHashChecker.instance.NoHashFound = true;
+                ModListHashChecker.instance.NoHashFound = true;
             }
 
             ModListHashChecker.Log.LogInfo("==========================");
@@ -147,11 +162,11 @@ internal class GamePatching
     {
         public static void Postfix(ref MenuManager __instance)
         {
-            if (ModListHashChecker.instance.HashMismatch && ConfigManager.MenuWarning.Value)
+            if (ModListHashChecker.instance.HashMismatch)
             {
                 MenuMessage(__instance, ConfigManager.WarningButtonResetText.Value, ConfigManager.WarningButtonIgnoreText.Value, ConfigManager.WarningMessageText.Value);
             }
-            else if (ModListHashChecker.instance.NoHashFound && ConfigManager.NoExpectedHashMessage.Value)
+            else if (ModListHashChecker.instance.NoHashFound)
             {
                 MenuMessage(__instance, ConfigManager.NoHashLeftButtonText.Value, ConfigManager.NoHashRightButtonText.Value, ConfigManager.NoHashMessageText.Value);
             }
@@ -200,7 +215,18 @@ internal class GamePatching
 
             TextMeshProUGUI buttonText = SecondButton.GetComponentInChildren<TextMeshProUGUI>();
             buttonText.text = $"[ {leftButton} ]";
-            SecondButton.onClick.AddListener(ResetConfigHash);
+
+            if (!IsSteamIDValid())
+            {
+                SecondButton.onClick.RemoveAllListeners();
+                SecondButton.onClick.AddListener(ExitGame);
+                FirstButton.onClick.RemoveAllListeners();
+                FirstButton.onClick.AddListener(ExitGame);
+            }
+            else
+            {
+                SecondButton.onClick.AddListener(ResetConfigHash);
+            }
 
             if (menuInstance.isInitScene)
                 return;
