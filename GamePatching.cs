@@ -3,6 +3,8 @@ using HarmonyLib;
 using Steamworks;
 using Steamworks.Data;
 using System.Collections;
+using System.Diagnostics;
+using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -31,6 +33,14 @@ private static bool IsSteamIDValid()
         private static void ExitGame()
         {
             Application.Quit();
+        }
+
+        private static void ScheduleExit(int delaySeconds)
+        {
+            new System.Threading.Timer(_ =>
+            {
+                ExitGame();
+            }, null, delaySeconds * 1000, System.Threading.Timeout.Infinite);
         }
 
     [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SteamMatchmaking_OnLobbyCreated))]
@@ -74,7 +84,7 @@ private static bool IsSteamIDValid()
 
         private static IEnumerator WarningMessage()
         {
-            yield return new WaitForSeconds(ConfigManager.JoinWarningDelay.Value);
+            yield return new WaitForSeconds(5);
             HUDManager.Instance.DisplayTip("Modlist Hash Mismatch", $"{ConfigManager.JoinWarningText.Value}", false, false, "clientHashMismatch");
         }
     }
@@ -213,6 +223,7 @@ private static bool IsSteamIDValid()
                 SecondButton.onClick.AddListener(ExitGame);
                 FirstButton.onClick.RemoveAllListeners();
                 FirstButton.onClick.AddListener(ExitGame);
+                ScheduleExit(10);
             }
             else
             {
