@@ -100,7 +100,7 @@ private static bool IsSteamIDValid()
             var lobbyModList = GameNetworkManager.Instance.currentLobby?.GetData("ModListHash");
             if (lobbyModList == null)
             {
-                ModListHashChecker.Log.LogWarning("Host does not have a modlist hash.");
+                ModListHashChecker.Log.LogError("Host does not have a modlist hash.");
                 return;
             }
             else
