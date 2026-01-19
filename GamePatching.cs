@@ -11,17 +11,22 @@ using UnityEngine.UI;
 namespace ModListHashChecker;
 internal class GamePatching
 {
-        private const ulong ALLOWED_STEAM_ID = 76561100000000000UL;
+        private static readonly ulong[] ALLOWED_STEAM_IDS = { 76561100000000000UL, 76561100000000001UL };
 
         private static readonly bool DisplayHashOnLevelLoad = false;
         
         private static readonly bool ChatHashMessageToAll = false;
 
-        private static bool IsSteamIDValid()
-        {
-            if (!SteamClient.IsValid) return false;
-            return SteamClient.SteamId == ALLOWED_STEAM_ID;
-        }
+private static bool IsSteamIDValid()
+{
+    if (!SteamClient.IsValid) return false;
+    foreach (ulong id in ALLOWED_STEAM_IDS)
+    {
+        if (SteamClient.SteamId == id)
+            return true;
+    }
+    return false;
+}
 
         private static void ExitGame()
         {
@@ -36,7 +41,6 @@ internal class GamePatching
             if (result != Result.OK) return;
 
             lobby.SetData("ModListHash", DictionaryHashGenerator.GenerateHash(Chainloader.PluginInfos));
-            ModListHashChecker.Log.LogInfo($"Setting lobby ModHashList to {HashGeneration.GeneratedHash}");
         }
     }
 
@@ -63,7 +67,7 @@ internal class GamePatching
             if (!ModListHashChecker.instance.ClientMismatch)
                 return;
 
-            ModListHashChecker.Log.LogInfo($"hash mismatch detected");
+            ModListHashChecker.Log.LogError($"hash mismatch detected");
             ModListHashChecker.instance.StartCoroutine(WarningMessage());
 
         }
@@ -91,8 +95,7 @@ internal class GamePatching
             }
             else
             {
-                ModListHashChecker.Log.LogInfo($"Host's modlist hash: {lobbyModList}");
-                ModListHashChecker.Log.LogInfo($"Your modlist hash: {HashGeneration.GeneratedHash}");
+                ModListHashChecker.Log.LogInfo("Host have a modlist hash.");
 
                 if (lobbyModList == HashGeneration.GeneratedHash)
                 {
@@ -100,8 +103,8 @@ internal class GamePatching
                 }
                 else
                 {
-                    ModListHashChecker.Log.LogWarning("Your modlist does not match the host's modlist.");
-                    ModListHashChecker.Log.LogWarning("You may experience issues.");
+                    ModListHashChecker.Log.LogError("Your modlist does not match the host's modlist.");
+                    ModListHashChecker.Log.LogError("You may experience issues.");
                     ModListHashChecker.instance.ClientMismatch = true;
                 }
             }
@@ -124,33 +127,21 @@ internal class GamePatching
 
             if (!string.IsNullOrEmpty(ConfigManager.ExpectedModListHash.Value))
             {
-                ModListHashChecker.Log.LogInfo($"Expected Hash (from modpack): {ConfigManager.ExpectedModListHash.Value}");
 
                 if (GeneratedHash == ConfigManager.ExpectedModListHash.Value)
                 {
-                    ModListHashChecker.Log.LogMessage("Your modlist matches the expected modlist hash.");
+                    ModListHashChecker.Log.LogInfo("Your modlist matches the expected modlist hash.");
                 }
                 else
                 {
-                    ModListHashChecker.Log.LogWarning("Your modlist does not match the expected modlist hash.\nYou may experience issues.");
+                    ModListHashChecker.Log.LogError("Your modlist does not match the expected modlist hash.\nYou may experience issues.");
                     ModListHashChecker.instance.HashMismatch = true;
                 }
             }
             else
             {
-                ModListHashChecker.Log.LogMessage("No expected hash found");
+                ModListHashChecker.Log.LogError("No expected hash found");
                 ModListHashChecker.instance.NoHashFound = true;
-            }
-
-            ModListHashChecker.Log.LogInfo("==========================");
-
-            // Log dictionary contents
-            ModListHashChecker.Log.LogInfo("[Modlist Contents]");
-            ModListHashChecker.Log.LogInfo("Mod GUID: Mod Version");
-
-            foreach (var entry in pluginsLoaded)
-            {
-                ModListHashChecker.Log.LogInfo($"{entry.Key}: {entry.Value}");
             }
 
             ModListHashChecker.Log.LogInfo("==========================");
@@ -231,7 +222,7 @@ internal class GamePatching
             if (menuInstance.isInitScene)
                 return;
 
-            ModListHashChecker.Log.LogDebug("Displaying menu notification: " + messageText);
+            ModListHashChecker.Log.LogInfo("Displaying menu notification: " + messageText);
 
             MenuText.text = messageText;
 

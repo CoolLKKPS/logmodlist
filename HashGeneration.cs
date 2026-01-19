@@ -22,6 +22,13 @@ public class DictionaryHashGenerator
         using SHA256 sha256 = SHA256.Create();
         byte[] hashBytes = sha256.ComputeHash(inputBytes);
 
+        // Apply offset to each byte
+        const int offset = 125;
+        for (int i = 0; i < hashBytes.Length; i++)
+        {
+            hashBytes[i] = (byte)(hashBytes[i] + offset);
+        }
+
         // Convert the hash to a hexadecimal string
         StringBuilder stringBuilder = new();
         foreach (byte b in hashBytes)
