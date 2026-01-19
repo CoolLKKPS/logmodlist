@@ -13,7 +13,7 @@ internal class GamePatching
 {
         private const ulong ALLOWED_STEAM_ID = 76561100000000000UL;
 
-        private static readonly bool DisplayHashOnLevelLoad = true;
+        private static readonly bool DisplayHashOnLevelLoad = false;
         
         private static readonly bool ChatHashMessageToAll = false;
 
