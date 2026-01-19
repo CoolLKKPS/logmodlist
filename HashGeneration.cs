@@ -15,19 +15,15 @@ public class DictionaryHashGenerator
         // Concatenate the sorted key-value pairs into a single string
         string concatenatedString = string.Join(",", sortedEntries.Select(entry => $"{entry.Key}:{entry.Value}"));
 
+        // Append salt
+        concatenatedString += "TeamMLC";
+
         // Convert the string to bytes
         byte[] inputBytes = Encoding.UTF8.GetBytes(concatenatedString);
 
         // Compute the hash
         using SHA256 sha256 = SHA256.Create();
         byte[] hashBytes = sha256.ComputeHash(inputBytes);
-
-        // Apply offset to each byte
-        const int offset = 125;
-        for (int i = 0; i < hashBytes.Length; i++)
-        {
-            hashBytes[i] = (byte)(hashBytes[i] + offset);
-        }
 
         // Convert the hash to a hexadecimal string
         StringBuilder stringBuilder = new();
