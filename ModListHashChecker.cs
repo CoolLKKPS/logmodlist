@@ -17,7 +17,7 @@ namespace ModListHashChecker
         {
             public const string PLUGIN_GUID = "TeamMLC.ModlistHashChecker";
             public const string PLUGIN_NAME = "ModlistHashChecker";
-            public const string PLUGIN_VERSION = "0.2.1";
+            public const string PLUGIN_VERSION = "0.2.2";
         }
 
         internal static ManualLogSource Log = null!;
