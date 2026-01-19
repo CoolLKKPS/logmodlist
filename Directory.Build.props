@@ -47,7 +47,7 @@
     <PathBeforeSteam Condition="'$([MSBuild]::IsOSUnixLike())' == 'true'">$(HOME)/.local/share/</PathBeforeSteam>
     <PathBeforeSteam Condition="'$([MSBuild]::IsOSUnixLike())' != 'true'">$(MSBuildProgramFiles32)/</PathBeforeSteam>
     <GameRootDir Condition="$(GameRootDir) == ''">D:\SteamLibrary\steamapps\common\Lethal Company\</GameRootDir>
-    <GamePluginsDir Condition="$(GamePluginsDir) == ''">$(GameRootDir)/BepInEx/plugins/</GamePluginsDir>
+    <GamePluginsDir Condition="$(GamePluginsDir) == ''">D:\Runtime dependencies (local)\BepInEx\plugins\</GamePluginsDir>
     <ManagedDir>$(GameRootDir)/Lethal Company_Data/Managed/</ManagedDir>
   </PropertyGroup>
 
