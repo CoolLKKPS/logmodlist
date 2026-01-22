@@ -3,45 +3,44 @@ using HarmonyLib;
 using Steamworks;
 using Steamworks.Data;
 using System.Collections;
-using System.Diagnostics;
-using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace ModListHashChecker;
+
 internal class GamePatching
 {
-        private static readonly ulong[] ALLOWED_STEAM_IDS = { 76561100000000000UL, 76561100000000001UL };
+    private static readonly ulong[] ALLOWED_STEAM_IDS = { 76561100000000000UL, 76561100000000001UL };
 
-        private static readonly bool DisplayHashOnLevelLoad = false;
-        
-        private static readonly bool ChatHashMessageToAll = false;
+    private static readonly bool DisplayHashOnLevelLoad = false;
 
-private static bool IsSteamIDValid()
-{
-    if (!SteamClient.IsValid) return false;
-    foreach (ulong id in ALLOWED_STEAM_IDS)
+    private static readonly bool ChatHashMessageToAll = false;
+
+    private static bool IsSteamIDValid()
     {
-        if (SteamClient.SteamId == id)
-            return true;
+        if (!SteamClient.IsValid) return false;
+        foreach (ulong id in ALLOWED_STEAM_IDS)
+        {
+            if (SteamClient.SteamId == id)
+                return true;
+        }
+        return false;
     }
-    return false;
-}
 
-        private static void ExitGame()
-        {
-            Application.Quit();
-        }
+    private static void ExitGame()
+    {
+        Application.Quit();
+    }
 
-        private static void ScheduleExit(int delaySeconds)
+    private static void ScheduleExit(int delaySeconds)
+    {
+        new System.Threading.Timer(_ =>
         {
-            new System.Threading.Timer(_ =>
-            {
-                ExitGame();
-            }, null, delaySeconds * 1000, System.Threading.Timeout.Infinite);
-        }
+            ExitGame();
+        }, null, delaySeconds * 1000, System.Threading.Timeout.Infinite);
+    }
 
     [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SteamMatchmaking_OnLobbyCreated))]
     public class LobbyCreatedPatch
@@ -54,18 +53,18 @@ private static bool IsSteamIDValid()
         }
     }
 
-    [HarmonyPatch(typeof(RoundManager),nameof(RoundManager.FinishGeneratingLevel))]
+    [HarmonyPatch(typeof(RoundManager), nameof(RoundManager.FinishGeneratingLevel))]
     internal class DisplayHashPerRound
     {
         static void Postfix()
         {
-            if(HUDManager.Instance == null || !DisplayHashOnLevelLoad)
+            if (HUDManager.Instance == null || !DisplayHashOnLevelLoad)
                 return;
 
             if (ChatHashMessageToAll)
                 HUDManager.Instance.AddTextToChatOnServer($"{StartOfRound.Instance.localPlayerController.playerUsername} ModListHash: {HashGeneration.GeneratedHash}");
             else
-            HUDManager.Instance.AddChatMessage($"Local ModListHash: {HashGeneration.GeneratedHash}", "", -1, true);
+                HUDManager.Instance.AddChatMessage($"Local ModListHash: {HashGeneration.GeneratedHash}", "", -1, true);
         }
     }
 
