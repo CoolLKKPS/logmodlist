@@ -76,8 +76,6 @@ private static bool IsSteamIDValid()
         {
             if (!ModListHashChecker.instance.ClientMismatch)
                 return;
-
-            ModListHashChecker.Log.LogError($"hash mismatch detected");
             ModListHashChecker.instance.StartCoroutine(WarningMessage());
 
         }
@@ -95,28 +93,16 @@ private static bool IsSteamIDValid()
     {
         static void Postfix()
         {
-            ModListHashChecker.Log.LogInfo("Comparing your modlist with the host's modlist.");
-
             var lobbyModList = GameNetworkManager.Instance.currentLobby?.GetData("ModListHash");
             if (lobbyModList == null)
             {
-                ModListHashChecker.Log.LogError("Host does not have a modlist hash.");
-                ModListHashChecker.Log.LogError("You may experience issues.");
                 ModListHashChecker.instance.ClientMismatch = true;
                 return;
             }
             else
             {
-                ModListHashChecker.Log.LogInfo("Host have a modlist hash.");
-
-                if (lobbyModList == HashGeneration.GeneratedHash)
+                if (lobbyModList != HashGeneration.GeneratedHash)
                 {
-                    ModListHashChecker.Log.LogInfo("Your modlist matches the host's modlist!");
-                }
-                else
-                {
-                    ModListHashChecker.Log.LogError("Your modlist does not match the host's modlist.");
-                    ModListHashChecker.Log.LogError("You may experience issues.");
                     ModListHashChecker.instance.ClientMismatch = true;
                 }
             }
@@ -131,32 +117,21 @@ private static bool IsSteamIDValid()
 
         static void Postfix()
         {
-            ModListHashChecker.Log.LogInfo("Creating Modlist Hash.");
             var pluginsLoaded = Chainloader.PluginInfos;
             GeneratedHash = DictionaryHashGenerator.GenerateHash(pluginsLoaded);
-
-            ModListHashChecker.Log.LogInfo("==========================");
 
             if (!string.IsNullOrEmpty(ConfigManager.ExpectedModListHash.Value))
             {
 
-                if (GeneratedHash == ConfigManager.ExpectedModListHash.Value)
+                if (GeneratedHash != ConfigManager.ExpectedModListHash.Value)
                 {
-                    ModListHashChecker.Log.LogInfo("Your modlist matches the expected modlist hash.");
-                }
-                else
-                {
-                    ModListHashChecker.Log.LogError("Your modlist does not match the expected modlist hash.\nYou may experience issues.");
                     ModListHashChecker.instance.HashMismatch = true;
                 }
             }
             else
             {
-                ModListHashChecker.Log.LogError("No expected hash found");
                 ModListHashChecker.instance.NoHashFound = true;
             }
-
-            ModListHashChecker.Log.LogInfo("==========================");
         }
     }
 
@@ -174,7 +149,9 @@ private static bool IsSteamIDValid()
                 MenuMessage(__instance, ConfigManager.NoHashLeftButtonText.Value, ConfigManager.NoHashRightButtonText.Value, ConfigManager.NoHashMessageText.Value);
             }
             else
+            {
                 ModListHashChecker.Log.LogInfo($"Not sending any messages");
+            }
         }
 
         static void ResetConfigHash()
@@ -234,8 +211,6 @@ private static bool IsSteamIDValid()
 
             if (menuInstance.isInitScene)
                 return;
-
-            ModListHashChecker.Log.LogInfo("Displaying menu notification: " + messageText);
 
             MenuText.text = messageText;
 
