@@ -101,6 +101,8 @@ private static bool IsSteamIDValid()
             if (lobbyModList == null)
             {
                 ModListHashChecker.Log.LogError("Host does not have a modlist hash.");
+                ModListHashChecker.Log.LogError("You may experience issues.");
+                ModListHashChecker.instance.ClientMismatch = true;
                 return;
             }
             else
