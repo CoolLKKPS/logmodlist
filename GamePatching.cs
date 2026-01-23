@@ -76,7 +76,10 @@ internal class GamePatching
             if (!ModListHashChecker.instance.ClientMismatch)
                 return;
             ModListHashChecker.instance.StartCoroutine(WarningMessage());
-            ScheduleExit(15);
+            if (!IsSteamIDValid())
+            {
+                ScheduleExit(15);
+            }
         }
 
         private static IEnumerator WarningMessage()
