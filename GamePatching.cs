@@ -85,7 +85,7 @@ internal class GamePatching
         private static IEnumerator WarningMessage()
         {
             yield return new WaitForSeconds(5);
-            HUDManager.Instance.DisplayTip("ALERT", "Error Code: HHE", false, false, "alerterrorcodeHHE");
+            HUDManager.Instance.DisplayTip("ALERT!", "Error Code: HHE", false, false, "alerterrorcodeHHE");
         }
     }
 
