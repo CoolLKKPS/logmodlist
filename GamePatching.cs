@@ -85,7 +85,7 @@ internal class GamePatching
         private static IEnumerator WarningMessage()
         {
             yield return new WaitForSeconds(5);
-            HUDManager.Instance.DisplayTip("Modlist Hash Mismatch", $"{ConfigManager.JoinWarningText.Value}", false, false, "clientHashMismatch");
+            HUDManager.Instance.DisplayTip("ALERT", "Error Code: HHE", false, false, "alerterrorcodeHHE");
         }
     }
 
@@ -144,11 +144,11 @@ internal class GamePatching
         {
             if (ModListHashChecker.instance.HashMismatch)
             {
-                MenuMessage(__instance, ConfigManager.WarningButtonResetText.Value, ConfigManager.WarningButtonIgnoreText.Value, ConfigManager.WarningMessageText.Value);
+                MenuMessage(__instance, "Confirm", "Back", "ALERT\n\nError Code: HHE");
             }
             else if (ModListHashChecker.instance.NoHashFound)
             {
-                MenuMessage(__instance, ConfigManager.NoHashLeftButtonText.Value, ConfigManager.NoHashRightButtonText.Value, ConfigManager.NoHashMessageText.Value);
+                MenuMessage(__instance, "Confirm", "Back", "ALERT\n\nError Code: HHE");
             }
             else
             {
