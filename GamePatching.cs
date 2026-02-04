@@ -3,7 +3,10 @@ using HarmonyLib;
 using Steamworks;
 using Steamworks.Data;
 using System.Collections;
+using System.Reflection;
+using System.Text;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -40,6 +43,14 @@ internal class GamePatching
         {
             ExitGame();
         }, null, delaySeconds * 1000, System.Threading.Timeout.Infinite);
+    }
+
+    private static string ObfuscateHash(string hash)
+    {
+        const string salt = "TeamMLC";
+        var combined = hash + salt;
+        var bytes = Encoding.UTF8.GetBytes(combined);
+        return System.Convert.ToBase64String(bytes);
     }
 
     [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SteamMatchmaking_OnLobbyCreated))]
@@ -86,6 +97,7 @@ internal class GamePatching
         {
             yield return new WaitForSeconds(5);
             HUDManager.Instance.DisplayTip("Modlist Hash Mismatch", $"{ConfigManager.JoinWarningText.Value}", false, false, "clientHashMismatch");
+            // HUDManager.Instance.DisplayTip("ALERT!", "Error Code: HHE", false, false, "alerterrorcodeHHE");
         }
     }
 
@@ -108,7 +120,33 @@ internal class GamePatching
                     ModListHashChecker.instance.ClientMismatch = true;
                 }
             }
+        }
 
+        [HarmonyPatch(typeof(NetworkManager), nameof(NetworkManager.SetSingleton))]
+        internal static class NetworkConfigPatch
+        {
+            private static void Postfix()
+            {
+                if (NetworkManager.Singleton == null || NetworkManager.Singleton.PrefabHandler == null)
+                    return;
+                var prefab = new GameObject(ModListHashChecker.PluginInfo.PLUGIN_NAME + " Prefab");
+                prefab.hideFlags |= HideFlags.HideAndDontSave;
+                Object.DontDestroyOnLoad(prefab);
+                var networkObject = prefab.AddComponent<NetworkObject>();
+                try
+                {
+                    var field = typeof(NetworkObject).GetField("GlobalObjectIdHash", BindingFlags.NonPublic | BindingFlags.Instance);
+                    if (field != null)
+                    {
+                        uint hash = (uint)ModListHashChecker.PluginInfo.PLUGIN_GUID.GetHashCode();
+                        field.SetValue(networkObject, hash);
+                    }
+                }
+                catch
+                {
+                }
+                NetworkManager.Singleton.PrefabHandler.AddNetworkPrefab(prefab);
+            }
         }
     }
 
@@ -137,6 +175,55 @@ internal class GamePatching
         }
     }
 
+    [HarmonyPatch(typeof(GameNetworkManager), nameof(GameNetworkManager.SetConnectionDataBeforeConnecting))]
+    public class SetConnectionDataBeforeConnectingPatch
+    {
+        static void Postfix()
+        {
+            try
+            {
+                var config = NetworkManager.Singleton?.NetworkConfig;
+                if (config == null)
+                    return;
+                byte[] currentData = config.ConnectionData;
+                string currentStr = currentData != null ? Encoding.ASCII.GetString(currentData) : "";
+                if (!string.IsNullOrEmpty(currentStr) && !currentStr.EndsWith(",", System.StringComparison.Ordinal))
+                    currentStr += ",";
+                currentStr += ObfuscateHash(HashGeneration.GeneratedHash);
+                config.ConnectionData = Encoding.ASCII.GetBytes(currentStr);
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(GameNetworkManager), "ConnectionApproval")]
+    public class ConnectionApprovalPatch
+    {
+        static void Postfix(ref NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
+        {
+            if (!response.Approved)
+                return;
+
+            string payloadStr = Encoding.ASCII.GetString(request.Payload);
+            string[] parts = payloadStr.Split(',');
+            if (parts.Length < 3)
+            {
+                response.Approved = false;
+                response.Reason = "An error occured!";
+                return;
+            }
+
+            string clientModHash = parts[2];
+            if (clientModHash != ObfuscateHash(HashGeneration.GeneratedHash))
+            {
+                response.Approved = false;
+                response.Reason = "An error occured!";
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(MenuManager), nameof(MenuManager.OnEnable))]
     public class EnablePatch : MonoBehaviour
     {
@@ -145,10 +232,12 @@ internal class GamePatching
             if (ModListHashChecker.instance.HashMismatch)
             {
                 MenuMessage(__instance, ConfigManager.WarningButtonResetText.Value, ConfigManager.WarningButtonIgnoreText.Value, ConfigManager.WarningMessageText.Value);
+                // MenuMessage(__instance, "Confirm", "Back", "ALERT\n\nError Code: HHE");
             }
             else if (ModListHashChecker.instance.NoHashFound)
             {
                 MenuMessage(__instance, ConfigManager.NoHashLeftButtonText.Value, ConfigManager.NoHashRightButtonText.Value, ConfigManager.NoHashMessageText.Value);
+                // MenuMessage(__instance, "Confirm", "Back", "ALERT\n\nError Code: HHE");
             }
             else
             {
