@@ -7,13 +7,17 @@ namespace ModListHashChecker;
 
 public class DictionaryHashGenerator
 {
-    public static string GenerateHash(Dictionary<string, BepInEx.PluginInfo> inputDictionary)
+    public static string GenerateModListString(Dictionary<string, BepInEx.PluginInfo> inputDictionary)
     {
         // Sort the values of the dictionary by key to ensure consistent order
         var sortedEntries = inputDictionary.OrderBy(entry => entry.Key);
+        return string.Join(",", sortedEntries.Select(entry => $"{entry.Key}:{entry.Value}"));
+    }
 
+    public static string GenerateHash(Dictionary<string, BepInEx.PluginInfo> inputDictionary)
+    {
         // Concatenate the sorted key-value pairs into a single string
-        string concatenatedString = string.Join(",", sortedEntries.Select(entry => $"{entry.Key}:{entry.Value}"));
+        string concatenatedString = GenerateModListString(inputDictionary);
 
         // Append salt
         concatenatedString += "TeamMLC";
@@ -22,6 +26,20 @@ public class DictionaryHashGenerator
         byte[] inputBytes = Encoding.UTF8.GetBytes(concatenatedString);
 
         // Compute the hash
+        using SHA256 sha256 = SHA256.Create();
+        byte[] hashBytes = sha256.ComputeHash(inputBytes);
+        StringBuilder stringBuilder = new();
+        foreach (byte b in hashBytes)
+        {
+            stringBuilder.Append(b.ToString("x2"));
+        }
+        return stringBuilder.ToString();
+    }
+
+    public static string ComputeHash(string input, string salt)
+    {
+        string combined = input + salt;
+        byte[] inputBytes = Encoding.UTF8.GetBytes(combined);
         using SHA256 sha256 = SHA256.Create();
         byte[] hashBytes = sha256.ComputeHash(inputBytes);
 

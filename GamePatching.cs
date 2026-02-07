@@ -30,6 +30,7 @@ internal class GamePatching
                 return true;
         }
         return false;
+        // return true;
     }
 
     private static void ExitGame()
@@ -60,7 +61,21 @@ internal class GamePatching
         {
             if (result != Result.OK) return;
 
-            lobby.SetData("ModListHash", DictionaryHashGenerator.GenerateHash(Chainloader.PluginInfos));
+            string modListString = DictionaryHashGenerator.GenerateModListString(Chainloader.PluginInfos);
+            string baseHash = DictionaryHashGenerator.ComputeHash(modListString, "");
+            byte[] saltBytes = new byte[16];
+            System.Security.Cryptography.RandomNumberGenerator.Fill(saltBytes);
+            string salt = System.Convert.ToBase64String(saltBytes);
+            byte[] challengeBytes = new byte[8];
+            System.Security.Cryptography.RandomNumberGenerator.Fill(challengeBytes);
+            string challenge = System.Convert.ToBase64String(challengeBytes);
+            string challengeHash = DictionaryHashGenerator.ComputeHash(modListString, challenge);
+            lobby.SetData("MLHC_BaseHash", baseHash);
+            lobby.SetData("MLHC_Salt", salt);
+            lobby.SetData("MLHC_HostSteamID", SteamClient.SteamId.ToString());
+            lobby.SetData("MLHC_Challenge", challenge);
+            lobby.SetData("MLHC_ChallengeHash", challengeHash);
+            lobby.SetData("ModListHash", "");
         }
     }
 
@@ -107,18 +122,24 @@ internal class GamePatching
     {
         static void Postfix()
         {
-            var lobbyModList = GameNetworkManager.Instance.currentLobby?.GetData("ModListHash");
-            if (lobbyModList == null)
+            var lobby = GameNetworkManager.Instance.currentLobby;
+            if (lobby == null)
             {
                 ModListHashChecker.instance.ClientMismatch = true;
                 return;
             }
-            else
+            string challenge = lobby.Value.GetData("MLHC_Challenge");
+            string challengeHash = lobby.Value.GetData("MLHC_ChallengeHash");
+            if (string.IsNullOrEmpty(challenge) || string.IsNullOrEmpty(challengeHash))
             {
-                if (lobbyModList != HashGeneration.GeneratedHash)
-                {
-                    ModListHashChecker.instance.ClientMismatch = true;
-                }
+                ModListHashChecker.instance.ClientMismatch = true;
+                return;
+            }
+            string modListString = DictionaryHashGenerator.GenerateModListString(Chainloader.PluginInfos);
+            string localChallengeHash = DictionaryHashGenerator.ComputeHash(modListString, challenge);
+            if (challengeHash != localChallengeHash)
+            {
+                ModListHashChecker.instance.ClientMismatch = true;
             }
         }
 
@@ -189,7 +210,21 @@ internal class GamePatching
                 string currentStr = currentData != null ? Encoding.ASCII.GetString(currentData) : "";
                 if (!string.IsNullOrEmpty(currentStr) && !currentStr.EndsWith(",", System.StringComparison.Ordinal))
                     currentStr += ",";
-                currentStr += ObfuscateHash(HashGeneration.GeneratedHash);
+                var lobby = GameNetworkManager.Instance.currentLobby;
+                if (lobby == null)
+                {
+                    ModListHashChecker.Log.LogError("No lobby when setting connection data");
+                    return;
+                }
+                string salt = lobby.Value.GetData("MLHC_Salt");
+                if (string.IsNullOrEmpty(salt))
+                {
+                    ModListHashChecker.Log.LogError("Missing salt in lobby data");
+                    return;
+                }
+                string modListString = DictionaryHashGenerator.GenerateModListString(Chainloader.PluginInfos);
+                string bindingHash = DictionaryHashGenerator.ComputeHash(modListString, salt + SteamClient.SteamId.ToString());
+                currentStr += bindingHash;
                 config.ConnectionData = Encoding.ASCII.GetBytes(currentStr);
             }
             catch
@@ -215,8 +250,25 @@ internal class GamePatching
                 return;
             }
 
+            string clientSteamId = parts[1];
             string clientModHash = parts[2];
-            if (clientModHash != ObfuscateHash(HashGeneration.GeneratedHash))
+            var lobby = GameNetworkManager.Instance.currentLobby;
+            if (lobby == null)
+            {
+                response.Approved = false;
+                response.Reason = "An error occured!";
+                return;
+            }
+            string salt = lobby.Value.GetData("MLHC_Salt");
+            if (string.IsNullOrEmpty(salt))
+            {
+                response.Approved = false;
+                response.Reason = "An error occured!";
+                return;
+            }
+            string modListString = DictionaryHashGenerator.GenerateModListString(Chainloader.PluginInfos);
+            string expectedHash = DictionaryHashGenerator.ComputeHash(modListString, salt + clientSteamId);
+            if (clientModHash != expectedHash)
             {
                 response.Approved = false;
                 response.Reason = "An error occured!";
