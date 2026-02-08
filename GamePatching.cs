@@ -61,7 +61,7 @@ internal class GamePatching
         {
             if (result != Result.OK) return;
 
-            string modListString = DictionaryHashGenerator.GenerateModListString(Chainloader.PluginInfos);
+            string modListString = DictionaryHashGenerator.GetFullModListString(Chainloader.PluginInfos);
             string baseHash = DictionaryHashGenerator.ComputeHash(modListString, "");
             byte[] saltBytes = new byte[16];
             System.Security.Cryptography.RandomNumberGenerator.Fill(saltBytes);
@@ -135,7 +135,7 @@ internal class GamePatching
                 ModListHashChecker.instance.ClientMismatch = true;
                 return;
             }
-            string modListString = DictionaryHashGenerator.GenerateModListString(Chainloader.PluginInfos);
+            string modListString = DictionaryHashGenerator.GetFullModListString(Chainloader.PluginInfos);
             string localChallengeHash = DictionaryHashGenerator.ComputeHash(modListString, challenge);
             if (challengeHash != localChallengeHash)
             {
@@ -222,7 +222,7 @@ internal class GamePatching
                     ModListHashChecker.Log.LogError("Missing salt in lobby data");
                     return;
                 }
-                string modListString = DictionaryHashGenerator.GenerateModListString(Chainloader.PluginInfos);
+                string modListString = DictionaryHashGenerator.GetFullModListString(Chainloader.PluginInfos);
                 string bindingHash = DictionaryHashGenerator.ComputeHash(modListString, salt + SteamClient.SteamId.ToString());
                 currentStr += bindingHash;
                 config.ConnectionData = Encoding.ASCII.GetBytes(currentStr);
@@ -266,7 +266,7 @@ internal class GamePatching
                 response.Reason = "An error occured!";
                 return;
             }
-            string modListString = DictionaryHashGenerator.GenerateModListString(Chainloader.PluginInfos);
+            string modListString = DictionaryHashGenerator.GetFullModListString(Chainloader.PluginInfos);
             string expectedHash = DictionaryHashGenerator.ComputeHash(modListString, salt + clientSteamId);
             if (clientModHash != expectedHash)
             {
