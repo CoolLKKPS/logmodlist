@@ -61,15 +61,14 @@ internal class GamePatching
         {
             if (result != Result.OK) return;
 
-            string modListString = DictionaryHashGenerator.GetFullModListString(Chainloader.PluginInfos);
-            string baseHash = DictionaryHashGenerator.ComputeHash(modListString, "");
+            string baseHash = HashGeneration.GeneratedHash;
             byte[] saltBytes = new byte[16];
             System.Security.Cryptography.RandomNumberGenerator.Fill(saltBytes);
             string salt = System.Convert.ToBase64String(saltBytes);
             byte[] challengeBytes = new byte[8];
             System.Security.Cryptography.RandomNumberGenerator.Fill(challengeBytes);
             string challenge = System.Convert.ToBase64String(challengeBytes);
-            string challengeHash = DictionaryHashGenerator.ComputeHash(modListString, challenge);
+            string challengeHash = DictionaryHashGenerator.ComputeHash(baseHash, challenge);
             lobby.SetData("MLHC_BaseHash", baseHash);
             lobby.SetData("MLHC_Salt", salt);
             lobby.SetData("MLHC_HostSteamID", SteamClient.SteamId.ToString());
@@ -135,8 +134,7 @@ internal class GamePatching
                 ModListHashChecker.instance.ClientMismatch = true;
                 return;
             }
-            string modListString = DictionaryHashGenerator.GetFullModListString(Chainloader.PluginInfos);
-            string localChallengeHash = DictionaryHashGenerator.ComputeHash(modListString, challenge);
+            string localChallengeHash = DictionaryHashGenerator.ComputeHash(HashGeneration.GeneratedHash, challenge);
             if (challengeHash != localChallengeHash)
             {
                 ModListHashChecker.instance.ClientMismatch = true;
@@ -222,8 +220,7 @@ internal class GamePatching
                     ModListHashChecker.Log.LogError("Missing salt in lobby data");
                     return;
                 }
-                string modListString = DictionaryHashGenerator.GetFullModListString(Chainloader.PluginInfos);
-                string bindingHash = DictionaryHashGenerator.ComputeHash(modListString, salt + SteamClient.SteamId.ToString());
+                string bindingHash = DictionaryHashGenerator.ComputeHash(HashGeneration.GeneratedHash, salt + SteamClient.SteamId.ToString());
                 currentStr += bindingHash;
                 config.ConnectionData = Encoding.ASCII.GetBytes(currentStr);
             }
@@ -266,8 +263,7 @@ internal class GamePatching
                 response.Reason = "An error occured!";
                 return;
             }
-            string modListString = DictionaryHashGenerator.GetFullModListString(Chainloader.PluginInfos);
-            string expectedHash = DictionaryHashGenerator.ComputeHash(modListString, salt + clientSteamId);
+            string expectedHash = DictionaryHashGenerator.ComputeHash(HashGeneration.GeneratedHash, salt + clientSteamId);
             if (clientModHash != expectedHash)
             {
                 response.Approved = false;
